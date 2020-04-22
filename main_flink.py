@@ -1,22 +1,22 @@
-def main_flink():
-    args = parser.parse_args()
-    file_list = ["json_data/json-0.txt"]
-    sentence_list = get_weibo_data_from_json_txt(file_list)
-    cleaned_sentences = clean_weibo_data(sentence_list)
-    print("total data size: " + str(len(cleaned_sentences)))
+import testClass
+from pyflink.table import StreamTableEnvironment, DataTypes
+from pyflink.table.descriptors import Schema, OldCsv, FileSystem
+from pyflink.table.udf import udf
+from pyflink.datastream import StreamExecutionEnvironment
 
+def main_flink():
     env = StreamExecutionEnvironment.get_execution_environment()
     parr_num = 4
     env.set_parallelism(parr_num)
     t_env = StreamTableEnvironment.create(env)
     @udf(input_types=DataTypes.STRING(), result_type=DataTypes.STRING())
     def cut_extract(string):
-        return cut_posseg.cut_extract(string)
+        return testClass.cut_extract(string)
 
 
     t_env.register_function("cut_extract",cut_extract)
     #t_env.register_function("add", udf(lambda i: i, DataTypes.STRING, DataTypes.STRING()))
-    t_env.connect(FileSystem().path('/home/sjtuadm/hotspot/input_json')) \
+    t_env.connect(FileSystem().path('input')) \
         .with_format(OldCsv()
                      .field('text', DataTypes.STRING())) \
         .with_schema(Schema()
@@ -36,5 +36,5 @@ def main_flink():
 
     t_env.execute("tutorial_job")
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     main_flink()
