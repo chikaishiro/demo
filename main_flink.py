@@ -1,3 +1,4 @@
+#flink版本是1.10.0， pyflink（pip install apache-flink）版本是1.10.*
 import testClass
 from pyflink.table import StreamTableEnvironment, DataTypes
 from pyflink.table.descriptors import Schema, OldCsv, FileSystem
@@ -5,6 +6,7 @@ from pyflink.table.udf import udf
 from pyflink.datastream import StreamExecutionEnvironment
 
 def main_flink():
+    #之前的步骤是拿文件然后预处理然后写文件到input这个文件中
     env = StreamExecutionEnvironment.get_execution_environment()
     parr_num = 4
     env.set_parallelism(parr_num)
@@ -15,7 +17,7 @@ def main_flink():
 
 
     t_env.register_function("cut_extract",cut_extract)
-    #t_env.register_function("add", udf(lambda i: i, DataTypes.STRING, DataTypes.STRING()))
+    #这里是建表然后从input拿，问题1：有没有办法从自定义的list来当做输入来节省IO开销呢，比如我输入[文本A，文本B]这样的list作为输入
     t_env.connect(FileSystem().path('input')) \
         .with_format(OldCsv()
                      .field('text', DataTypes.STRING())) \
@@ -33,8 +35,11 @@ def main_flink():
     t_env.from_path('mySource')\
         .select("cut_extract(text)")\
         .insert_into('mySink')
-
+    #问题2：这里我是将结果的表写了文件，但实际上我还需要在这个代码中继续对这些处理完的数据进行处理，也没有办法直接将上述的mySink表直接
+    #作为内存数据取出来而不是从硬盘再读入呢
     t_env.execute("tutorial_job")
-
+    #问题3：我现在看文档是只能用这种方式使用python的自定义函数（使用StreamExecutionEnvironment和tableAPI），还有其他更好的方法可以完成
+    #这样一个流程吗
+    
 if __name__ == "__main__":
     main_flink()
