@@ -18,14 +18,14 @@ def main_flink():
 
     t_env.register_function("cut_extract",cut_extract)
     #这里是建表然后从input拿，问题1：有没有办法从自定义的list来当做输入来节省IO开销呢，比如我输入[文本A，文本B]这样的list作为输入
-    t_env.connect(FileSystem().path('input')) \
+    t_env.connect(FileSystem().path('/home/sjtu/input')) \
         .with_format(OldCsv()
                      .field('text', DataTypes.STRING())) \
         .with_schema(Schema()
                      .field('text', DataTypes.STRING())) \
         .create_temporary_table('mySource')
 
-    t_env.connect(FileSystem().path('/home/sjtuadm/hotspot/output')) \
+    t_env.connect(FileSystem().path('/home/sjtu/output')) \
         .with_format(OldCsv()
                      .field('result', DataTypes.STRING())) \
         .with_schema(Schema()
@@ -40,6 +40,8 @@ def main_flink():
     t_env.execute("tutorial_job")
     #问题3：我现在看文档是只能用这种方式使用python的自定义函数（使用StreamExecutionEnvironment和tableAPI），还有其他更好的方法可以完成
     #这样一个流程吗
-    
+    #问题4：这样设置并行度为4会导致输出的为output一个文件夹，里面有output/1 output/2 output/3 output/4这四个文件，然后我之后的处理方法是
+    #按parr_num数重新读文件把他们合并，还有更好的方法吗
+    #问题5：一整个流程涉及多次本地文件系统IO操作，这样做假如放到集群上会出问题吗
 if __name__ == "__main__":
     main_flink()
