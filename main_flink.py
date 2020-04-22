@@ -1,5 +1,5 @@
 #flink版本是1.10.0， pyflink（pip install apache-flink）版本是1.10.*
-import testClass
+import cut_posseg
 from pyflink.table import StreamTableEnvironment, DataTypes
 from pyflink.table.descriptors import Schema, OldCsv, FileSystem
 from pyflink.table.udf import udf
@@ -13,7 +13,7 @@ def main_flink():
     t_env = StreamTableEnvironment.create(env)
     @udf(input_types=DataTypes.STRING(), result_type=DataTypes.STRING())
     def cut_extract(string):
-        return testClass.cut_extract(string)
+        return cut_posseg.cut_extract(string)
 
 
     t_env.register_function("cut_extract",cut_extract)
